@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-vassago",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Obsidian plugin for displaying semantic relation types in graph view",
 	"main": "main.js",
 	"type": "module",
