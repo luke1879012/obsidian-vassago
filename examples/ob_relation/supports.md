@@ -1,12 +1,13 @@
 ---
-color: "#4CAF50"
-style: solid
-width: 2
-arrow: true
-direction: outgoing
-inverse: "supported_by"
-label: "支持"
-description: "表示A支持/证实B的观点"
+$color: "#4CAF50"
+$shape: straight
+$pattern: solid
+$width: 2
+$arrow: true
+$direction: outgoing
+$inverse: "supported_by"
+$label: "支持"
+$description: "表示A支持/证实B的观点"
 ---
 
 # supports（支持）
@@ -36,4 +37,5 @@ supports:
 - **方向**: 从当前笔记指向目标笔记
 - **反向关系**: supported_by（被支持）
 - **颜色**: 绿色 (#4CAF50)
-- **线型**: 实线
+- **形状**: 直线（straight）
+- **图案**: 实线（solid）

@@ -1,11 +1,12 @@
 ---
-color: "#00BCD4"
-style: curved
-width: 2
-arrow: true
-direction: bidirectional
-label: "相关"
-description: "表示A与B相关（使用曲线）"
+$color: "#00BCD4"
+$shape: curved
+$pattern: solid
+$width: 2
+$arrow: true
+$direction: bidirectional
+$label: "相关"
+$description: "表示A与B相关（使用曲线）"
 ---
 
 # related_to（相关）
@@ -27,7 +28,8 @@ related_to:
 - **方向**: 双向关系（bidirectional）
 - **反向关系**: 无（自身对称）
 - **颜色**: 青色 (#00BCD4)
-- **线型**: 曲线（curved）- 使用二次贝塞尔曲线
+- **形状**: 曲线（curved）✨
+- **图案**: 实线（solid）
 - **箭头**: 有
 
 ## 曲线效果

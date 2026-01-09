@@ -1,4 +1,4 @@
-import { ObsidianRenderer, ObsidianLink, LinkPair, GltLink, DataviewLinkType, GltLegendGraphic, LineStyle } from './types';
+import { ObsidianRenderer, ObsidianLink, LinkPair, GltLink, DataviewLinkType, GltLegendGraphic, LineShape, LinePattern } from './types';
 import { RelationStyleManager } from './relationStyleManager';
 import { getAPI } from 'obsidian-dataview';
 import { Text, TextStyle, Graphics } from 'pixi.js';
@@ -248,22 +248,34 @@ export class LinkManager {
         if (graphics && renderer.px && renderer.px.stage && renderer.px.stage.children && renderer.px.stage.children.includes(graphics)) {
             // @ts-ignore
             const color = graphics._lineStyle.color;
+            // @ts-ignore - 存储 shape 和 pattern
+            const shape = graphics._customShape || LineShape.Straight;
             // @ts-ignore
-            const lineStyle = graphics._customLineStyle || LineStyle.Solid;
+            const pattern = graphics._customPattern || LinePattern.Solid;
 
             graphics.clear();
 
-            // 根据线型设置不同的渲染方式
-            if (lineStyle === LineStyle.Dashed) {
-                this.drawDashedLine(graphics, x1, y1, x2, y2, 3 / Math.sqrt(renderer.nodeScale), color);
-            } else if (lineStyle === LineStyle.Dotted) {
-                this.drawDottedLine(graphics, x1, y1, x2, y2, 3 / Math.sqrt(renderer.nodeScale), color);
-            } else if (lineStyle === LineStyle.Curved) {
-                this.drawCurvedLine(graphics, x1, y1, x2, y2, 3 / Math.sqrt(renderer.nodeScale), color);
+            // 根据 shape 和 pattern 组合绘制
+            if (shape === LineShape.Curved) {
+                // 曲线
+                if (pattern === LinePattern.Dotted) {
+                    // 曲线 + 点线（暂不支持，使用实线曲线）
+                    this.drawCurvedLine(graphics, x1, y1, x2, y2, 3 / Math.sqrt(renderer.nodeScale), color);
+                } else {
+                    // 曲线 + 实线
+                    this.drawCurvedLine(graphics, x1, y1, x2, y2, 3 / Math.sqrt(renderer.nodeScale), color);
+                }
             } else {
-                graphics.lineStyle(3 / Math.sqrt(renderer.nodeScale), color);
-                graphics.moveTo(x1, y1);
-                graphics.lineTo(x2, y2);
+                // 直线
+                if (pattern === LinePattern.Dotted) {
+                    // 直线 + 点线
+                    this.drawDottedLine(graphics, x1, y1, x2, y2, 3 / Math.sqrt(renderer.nodeScale), color);
+                } else {
+                    // 直线 + 实线
+                    graphics.lineStyle(3 / Math.sqrt(renderer.nodeScale), color);
+                    graphics.moveTo(x1, y1);
+                    graphics.lineTo(x2, y2);
+                }
             }
 
             graphics.alpha = 0.8;
@@ -402,14 +414,16 @@ export class LinkManager {
         }
 
         let color: number;
-        let lineStyle: LineStyle = LineStyle.Solid;
+        let shape: LineShape = LineShape.Straight;
+        let pattern: LinePattern = LinePattern.Solid;
         let linkString = relationType;
 
         // 获取样式配置
         if (this.styleManager.hasStyle(relationType)) {
             const style = this.styleManager.getStyle(relationType);
             color = this.styleManager.hexToPixiColor(style.color);
-            lineStyle = style.style;
+            shape = style.shape;
+            pattern = style.pattern;
             linkString = style.label || relationType;
         } else {
             // 使用默认颜色
@@ -457,8 +471,10 @@ export class LinkManager {
 
         const graphics = new Graphics();
         graphics.lineStyle(3 / Math.sqrt(renderer.nodeScale), color);
-        // @ts-ignore - 存储线型以便后续使用
-        graphics._customLineStyle = lineStyle;
+        // @ts-ignore - 存储 shape 和 pattern 以便后续使用
+        graphics._customShape = shape;
+        // @ts-ignore
+        graphics._customPattern = pattern;
         graphics.zIndex = 0;
         renderer.px.stage.addChild(graphics);
 

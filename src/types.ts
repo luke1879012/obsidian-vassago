@@ -46,18 +46,23 @@ export enum Direction {
     Bidirectional = 'bidirectional'  // 双向关系
 }
 
-// 边的样式枚举
-export enum LineStyle {
-    Solid = 'solid',
-    Dashed = 'dashed',
-    Dotted = 'dotted',
-    Curved = 'curved'
+// 边的形状枚举（直线或曲线）
+export enum LineShape {
+    Straight = 'straight',  // 直线
+    Curved = 'curved'       // 曲线
+}
+
+// 边的图案枚举（实线或点线）
+export enum LinePattern {
+    Solid = 'solid',        // 实线
+    Dotted = 'dotted'       // 点线
 }
 
 // 关系样式配置接口
 export interface RelationStyle {
     color: string;              // 边颜色 (hex)
-    style: LineStyle;           // 线型
+    shape: LineShape;           // 线条形状：直线或曲线
+    pattern: LinePattern;       // 线条图案：实线或点线
     width: number;              // 线宽
     arrow: boolean;             // 是否显示箭头
     direction: Direction;       // 边方向

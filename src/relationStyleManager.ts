@@ -1,5 +1,5 @@
 import { App, TFile, TFolder, parseYaml } from 'obsidian';
-import { RelationStyle, Direction, LineStyle } from './types';
+import { RelationStyle, Direction, LineShape, LinePattern } from './types';
 
 /**
  * 关系样式管理器
@@ -19,7 +19,8 @@ export class RelationStyleManager {
         // 默认样式
         this.defaultStyle = {
             color: '#808080',
-            style: LineStyle.Solid,
+            shape: LineShape.Straight,
+            pattern: LinePattern.Solid,
             width: 2,
             arrow: true,
             direction: Direction.Outgoing,
@@ -88,16 +89,17 @@ export class RelationStyleManager {
                 return null;
             }
 
-            // 解析样式配置
+            // 解析样式配置（强制使用$前缀）
             const style: RelationStyle = {
-                color: frontmatter.color || this.defaultStyle.color,
-                style: this.parseLineStyle(frontmatter.style),
-                width: frontmatter.width || this.defaultStyle.width,
-                arrow: frontmatter.arrow !== undefined ? frontmatter.arrow : this.defaultStyle.arrow,
-                direction: this.parseDirection(frontmatter.direction),
-                inverse: frontmatter.inverse,
-                label: frontmatter.label || '',
-                description: frontmatter.description
+                color: frontmatter.$color || this.defaultStyle.color,
+                shape: this.parseLineShape(frontmatter.$shape),
+                pattern: this.parseLinePattern(frontmatter.$pattern),
+                width: frontmatter.$width || this.defaultStyle.width,
+                arrow: frontmatter.$arrow !== undefined ? frontmatter.$arrow : this.defaultStyle.arrow,
+                direction: this.parseDirection(frontmatter.$direction),
+                inverse: frontmatter.$inverse,
+                label: frontmatter.$label || '',
+                description: frontmatter.$description
             };
 
             return style;
@@ -108,21 +110,32 @@ export class RelationStyleManager {
     }
 
     /**
-     * 解析线型
+     * 解析线条形状
      */
-    private parseLineStyle(style: string | undefined): LineStyle {
-        if (!style) return LineStyle.Solid;
+    private parseLineShape(shape: string | undefined): LineShape {
+        if (!shape) return LineShape.Straight;
 
-        switch (style.toLowerCase()) {
-            case 'dashed':
-                return LineStyle.Dashed;
-            case 'dotted':
-                return LineStyle.Dotted;
+        switch (shape.toLowerCase()) {
             case 'curved':
-                return LineStyle.Curved;
+                return LineShape.Curved;
+            case 'straight':
+            default:
+                return LineShape.Straight;
+        }
+    }
+
+    /**
+     * 解析线条图案
+     */
+    private parseLinePattern(pattern: string | undefined): LinePattern {
+        if (!pattern) return LinePattern.Solid;
+
+        switch (pattern.toLowerCase()) {
+            case 'dotted':
+                return LinePattern.Dotted;
             case 'solid':
             default:
-                return LineStyle.Solid;
+                return LinePattern.Solid;
         }
     }
 

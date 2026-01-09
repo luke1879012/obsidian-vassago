@@ -1,11 +1,12 @@
 ---
-color: "#9C27B0"
-style: dotted
-width: 2
-arrow: false
-direction: bidirectional
-label: "等价于"
-description: "表示A与B在某种意义上等价"
+$color: "#9C27B0"
+$shape: straight
+$pattern: dotted
+$width: 2
+$arrow: false
+$direction: bidirectional
+$label: "等价于"
+$description: "表示A与B在某种意义上等价"
 ---
 
 # equivalent_to（等价于）
@@ -25,5 +26,6 @@ equivalent_to: "[[信息熵]]"
 - **方向**: 双向关系（bidirectional）
 - **反向关系**: 无（自身对称）
 - **颜色**: 紫色 (#9C27B0)
-- **线型**: 点线（dotted）
+- **形状**: 直线（straight）
+- **图案**: 点线（dotted）
 - **箭头**: 无

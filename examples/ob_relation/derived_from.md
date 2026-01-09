@@ -1,12 +1,13 @@
 ---
-color: "#2196F3"
-style: solid
-width: 2
-arrow: true
-direction: incoming
-inverse: "derives"
-label: "派生自"
-description: "表示A从B派生而来"
+$color: "#2196F3"
+$shape: straight
+$pattern: solid
+$width: 2
+$arrow: true
+$direction: incoming
+$inverse: "derives"
+$label: "派生自"
+$description: "表示A从B派生而来"
 ---
 
 # derived_from（派生自）
@@ -28,4 +29,5 @@ derived_from:
 - **方向**: 从目标笔记指向当前笔记（incoming）
 - **反向关系**: derives（派生出）
 - **颜色**: 蓝色 (#2196F3)
-- **线型**: 实线
+- **形状**: 直线（straight）
+- **图案**: 实线（solid）
