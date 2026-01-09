@@ -1,99 +1,248 @@
-import {App, Editor, MarkdownView, Modal, Notice, Plugin} from 'obsidian';
-import {DEFAULT_SETTINGS, MyPluginSettings, SampleSettingTab} from "./settings";
+import { Plugin, Notice } from 'obsidian';
+import { getAPI } from 'obsidian-dataview';
+import { ObsidianRenderer } from './types';
+import { LinkManager } from './linkManager';
+import { RelationStyleManager } from './relationStyleManager';
+import { VassagoSettings, DEFAULT_SETTINGS, VassagoSettingTab } from './settings';
 
-// Remember to rename these classes and interfaces!
+/**
+ * Vassago - Graph Relation Types Plugin
+ * 揭示隐藏的关联，连接知识的过去与未来
+ */
+export default class VassagoPlugin extends Plugin {
+	settings: VassagoSettings;
+	api = getAPI();
+	currentRenderer: ObsidianRenderer | null = null;
+	animationFrameId: number | null = null;
+	linkManager: LinkManager;
+	styleManager: RelationStyleManager;
+	indexReady = false;
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+	async onload(): Promise<void> {
+		console.log('Loading Vassago plugin...');
 
-	async onload() {
+		// 加载设置
 		await this.loadSettings();
 
-		// This creates an icon in the left ribbon.
-		this.addRibbonIcon('dice', 'Sample', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
-		});
+		// 检查 Dataview API
+		if (!this.api) {
+			console.error("Vassago: Dataview plugin is not available.");
+			new Notice("Vassago requires the Dataview plugin. Please install and enable it.");
+			return;
+		}
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status bar text');
+		// 初始化样式管理器
+		this.styleManager = new RelationStyleManager(this.app, this.settings.relationDir);
+		await this.styleManager.loadStyles();
 
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: 'open-modal-simple',
-			name: 'Open modal (simple)',
-			callback: () => {
-				new SampleModal(this.app).open();
+		// 初始化链接管理器
+		this.linkManager = new LinkManager(this.styleManager);
+
+		// 监听配置目录变化
+		this.styleManager.watchDirectory(() => {
+			if (this.currentRenderer) {
+				this.startUpdateLoop();
 			}
 		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'replace-selected',
-			name: 'Replace selected content',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				editor.replaceSelection('Sample editor command');
-			}
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-modal-complex',
-			name: 'Open modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
 
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
+		// 添加设置面板
+		this.addSettingTab(new VassagoSettingTab(this.app, this));
+
+		// 监听布局变化
+		this.registerEvent(
+			this.app.workspace.on('layout-change', () => {
+				this.handleLayoutChange();
+			})
+		);
+
+		// 监听 Dataview 索引就绪
+		// @ts-ignore - Dataview 自定义事件
+		this.registerEvent(
+			// @ts-ignore
+			this.app.metadataCache.on("dataview:index-ready", () => {
+				this.indexReady = true;
+			})
+		);
+
+		// 监听 Dataview 元数据变化
+		// @ts-ignore - Dataview 自定义事件
+		this.registerEvent(
+			// @ts-ignore
+			this.app.metadataCache.on("dataview:metadata-change", () => {
+				if (this.indexReady) {
+					this.handleLayoutChange();
 				}
-				return false;
-			}
-		});
+			})
+		);
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			new Notice("Click");
-		});
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
-
+		console.log('Vassago plugin loaded successfully');
 	}
 
-	onunload() {
+	onunload(): void {
+		// 取消动画帧
+		if (this.animationFrameId !== null) {
+			cancelAnimationFrame(this.animationFrameId);
+			this.animationFrameId = null;
+		}
+
+		// 清理渲染器
+		if (this.currentRenderer) {
+			this.linkManager.destroyMap(this.currentRenderer);
+			this.currentRenderer = null;
+		}
+
+		console.log('Vassago plugin unloaded');
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<MyPluginSettings>);
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<VassagoSettings>);
 	}
 
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
-}
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
+	/**
+	 * 查找图视图渲染器
+	 */
+	findRenderer(): ObsidianRenderer | null {
+		// 查找全局图视图
+		let graphLeaves = this.app.workspace.getLeavesOfType('graph');
+		for (const leaf of graphLeaves) {
+			// @ts-ignore
+			const renderer = leaf.view.renderer;
+			if (this.isObsidianRenderer(renderer)) {
+				return renderer;
+			}
+		}
+
+		// 查找局部图视图
+		graphLeaves = this.app.workspace.getLeavesOfType('localgraph');
+		for (const leaf of graphLeaves) {
+			// @ts-ignore
+			const renderer = leaf.view.renderer;
+			if (this.isObsidianRenderer(renderer)) {
+				return renderer;
+			}
+		}
+		return null;
 	}
 
-	onOpen() {
-		let {contentEl} = this;
-		contentEl.setText('Woah!');
+	/**
+	 * 处理布局变化
+	 */
+	async handleLayoutChange() {
+		// 取消当前的动画帧
+		if (this.animationFrameId !== null) {
+			cancelAnimationFrame(this.animationFrameId);
+			this.animationFrameId = null;
+		}
+		await this.waitForRenderer();
+		this.checkAndUpdateRenderer();
 	}
 
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
+	/**
+	 * 检查并更新渲染器
+	 */
+	checkAndUpdateRenderer() {
+		const newRenderer = this.findRenderer();
+		if (!newRenderer) {
+			this.currentRenderer = null;
+			return;
+		}
+		newRenderer.px.stage.sortableChildren = true;
+		this.currentRenderer = newRenderer;
+		this.startUpdateLoop();
+	}
+
+	/**
+	 * 等待渲染器就绪
+	 */
+	waitForRenderer(): Promise<void> {
+		return new Promise((resolve) => {
+			const checkInterval = 500;
+
+			const intervalId = setInterval(() => {
+				const renderer = this.findRenderer();
+				if (renderer) {
+					clearInterval(intervalId);
+					resolve();
+				}
+			}, checkInterval);
+		});
+	}
+
+	/**
+	 * 启动更新循环
+	 */
+	startUpdateLoop(verbosity: number = 0): void {
+		if (!this.currentRenderer) {
+			if (verbosity > 0) {
+				new Notice('Vassago: No valid graph renderer found.');
+			}
+			return;
+		}
+		const renderer: ObsidianRenderer = this.currentRenderer;
+
+		// 移除现有的文本和图形
+		this.linkManager.destroyMap(renderer);
+
+		// 在下一个动画帧中更新位置
+		requestAnimationFrame(this.updatePositions.bind(this));
+	}
+
+	/**
+	 * 持续更新位置
+	 */
+	updatePositions(): void {
+		if (!this.currentRenderer) {
+			return;
+		}
+
+		const renderer: ObsidianRenderer = this.currentRenderer;
+
+		let updateMap = false;
+
+		if (this.animationFrameId && this.animationFrameId % 10 == 0) {
+			updateMap = true;
+			// 移除不再存在的链接
+			this.linkManager.removeLinks(renderer, renderer.links);
+		}
+
+		// 更新每个链接的位置
+		renderer.links.forEach((link) => {
+			if (updateMap) {
+				const key = this.linkManager.generateKey(link.source.id, link.target.id);
+				if (!this.linkManager.linksMap.has(key)) {
+					this.linkManager.addLink(
+						renderer,
+						link,
+						this.settings.showColors,
+						this.settings.showLegend
+					);
+				}
+			}
+			this.linkManager.updateLinkText(renderer, link, this.settings.showLabels);
+			if (this.settings.showColors) {
+				this.linkManager.updateLinkGraphics(renderer, link);
+			}
+		});
+
+		// 在下一个动画帧中继续更新
+		this.animationFrameId = requestAnimationFrame(this.updatePositions.bind(this));
+	}
+
+	/**
+	 * 类型守卫：检查是否为有效的 Obsidian 渲染器
+	 */
+	private isObsidianRenderer(renderer: any): renderer is ObsidianRenderer {
+		return renderer
+			&& renderer.px
+			&& renderer.px.stage
+			&& renderer.panX !== undefined
+			&& renderer.panY !== undefined
+			&& typeof renderer.px.stage.addChild === 'function'
+			&& typeof renderer.px.stage.removeChild === 'function'
+			&& Array.isArray(renderer.links);
 	}
 }
