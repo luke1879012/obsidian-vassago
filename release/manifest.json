@@ -1,0 +1,10 @@
+{
+	"id": "obsidian-vassago",
+	"name": "Vassago - Graph Relation Types",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "在图视图中显示带语义的关系边，支持从 ob_relation/ 目录读取自定义样式配置",
+	"author": "Your Name",
+	"authorUrl": "https://github.com/yourusername",
+	"isDesktopOnly": false
+}

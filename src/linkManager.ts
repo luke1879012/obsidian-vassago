@@ -264,7 +264,14 @@ export class LinkManager {
                 graphics.lineTo(x2, y2);
             }
 
-            graphics.alpha = 0.6;
+            graphics.alpha = 0.8;
+
+            // 隐藏原始链接线（通过设置 alpha 为 0）
+            // @ts-ignore - 访问 Obsidian 内部的链接对象
+            if (link.line && link.line.alpha !== undefined) {
+                // @ts-ignore
+                link.line.alpha = 0;
+            }
         }
     }
 
