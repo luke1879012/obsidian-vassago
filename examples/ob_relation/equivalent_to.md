@@ -1,7 +1,7 @@
 ---
 $color: "#9C27B0"
 $shape: straight
-$pattern: dotted
+$pattern: dashed
 $width: 2
 $arrow: false
 $direction: bidirectional
@@ -27,5 +27,5 @@ equivalent_to: "[[信息熵]]"
 - **反向关系**: 无（自身对称）
 - **颜色**: 紫色 (#9C27B0)
 - **形状**: 直线（straight）
-- **图案**: 点线（dotted）
+- **图案**: 虚线（dashed）
 - **箭头**: 无

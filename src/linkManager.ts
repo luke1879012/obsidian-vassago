@@ -258,8 +258,8 @@ export class LinkManager {
             // 根据 shape 和 pattern 组合绘制
             if (shape === LineShape.Curved) {
                 // 曲线
-                if (pattern === LinePattern.Dotted) {
-                    // 曲线 + 点线（暂不支持，使用实线曲线）
+                if (pattern === LinePattern.Dashed) {
+                    // 曲线 + 虚线（暂不支持，使用实线曲线）
                     this.drawCurvedLine(graphics, x1, y1, x2, y2, 3 / Math.sqrt(renderer.nodeScale), color);
                 } else {
                     // 曲线 + 实线
@@ -267,9 +267,9 @@ export class LinkManager {
                 }
             } else {
                 // 直线
-                if (pattern === LinePattern.Dotted) {
-                    // 直线 + 点线
-                    this.drawDottedLine(graphics, x1, y1, x2, y2, 3 / Math.sqrt(renderer.nodeScale), color);
+                if (pattern === LinePattern.Dashed) {
+                    // 直线 + 虚线
+                    this.drawDashedLine(graphics, x1, y1, x2, y2, 3 / Math.sqrt(renderer.nodeScale), color);
                 } else {
                     // 直线 + 实线
                     graphics.lineStyle(3 / Math.sqrt(renderer.nodeScale), color);
@@ -293,8 +293,8 @@ export class LinkManager {
      * 绘制虚线
      */
     private drawDashedLine(graphics: Graphics, x1: number, y1: number, x2: number, y2: number, lineWidth: number, color: number): void {
-        const dashLength = 10;
-        const gapLength = 5;
+        const dashLength = 8;  // 虚线段长度
+        const gapLength = 8;   // 间隙长度（更稀疏）
         const dx = x2 - x1;
         const dy = y2 - y1;
         const distance = Math.sqrt(dx * dx + dy * dy);
@@ -315,26 +315,7 @@ export class LinkManager {
         }
     }
 
-    /**
-     * 绘制点线
-     */
-    private drawDottedLine(graphics: Graphics, x1: number, y1: number, x2: number, y2: number, lineWidth: number, color: number): void {
-        const dotSpacing = 5;
-        const dx = x2 - x1;
-        const dy = y2 - y1;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        const dotCount = Math.floor(distance / dotSpacing);
 
-        graphics.lineStyle(lineWidth, color);
-
-        for (let i = 0; i <= dotCount; i++) {
-            const ratio = (i * dotSpacing) / distance;
-            const x = x1 + dx * ratio;
-            const y = y1 + dy * ratio;
-
-            graphics.drawCircle(x, y, lineWidth / 2);
-        }
-    }
 
     /**
      * 绘制曲线（二次贝塞尔曲线）

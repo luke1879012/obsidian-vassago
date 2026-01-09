@@ -131,8 +131,8 @@ export class RelationStyleManager {
         if (!pattern) return LinePattern.Solid;
 
         switch (pattern.toLowerCase()) {
-            case 'dotted':
-                return LinePattern.Dotted;
+            case 'dashed':
+                return LinePattern.Dashed;
             case 'solid':
             default:
                 return LinePattern.Solid;

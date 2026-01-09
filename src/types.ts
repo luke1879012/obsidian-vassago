@@ -52,10 +52,10 @@ export enum LineShape {
     Curved = 'curved'       // 曲线
 }
 
-// 边的图案枚举（实线或点线）
+// 边的图案枚举（实线或虚线）
 export enum LinePattern {
     Solid = 'solid',        // 实线
-    Dotted = 'dotted'       // 点线
+    Dashed = 'dashed'       // 虚线
 }
 
 // 关系样式配置接口
