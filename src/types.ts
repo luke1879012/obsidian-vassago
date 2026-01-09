@@ -50,7 +50,8 @@ export enum Direction {
 export enum LineStyle {
     Solid = 'solid',
     Dashed = 'dashed',
-    Dotted = 'dotted'
+    Dotted = 'dotted',
+    Curved = 'curved'
 }
 
 // 关系样式配置接口

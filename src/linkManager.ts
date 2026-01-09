@@ -258,6 +258,8 @@ export class LinkManager {
                 this.drawDashedLine(graphics, x1, y1, x2, y2, 3 / Math.sqrt(renderer.nodeScale), color);
             } else if (lineStyle === LineStyle.Dotted) {
                 this.drawDottedLine(graphics, x1, y1, x2, y2, 3 / Math.sqrt(renderer.nodeScale), color);
+            } else if (lineStyle === LineStyle.Curved) {
+                this.drawCurvedLine(graphics, x1, y1, x2, y2, 3 / Math.sqrt(renderer.nodeScale), color);
             } else {
                 graphics.lineStyle(3 / Math.sqrt(renderer.nodeScale), color);
                 graphics.moveTo(x1, y1);
@@ -320,6 +322,33 @@ export class LinkManager {
 
             graphics.drawCircle(x, y, lineWidth / 2);
         }
+    }
+
+    /**
+     * 绘制曲线（二次贝塞尔曲线）
+     */
+    private drawCurvedLine(graphics: Graphics, x1: number, y1: number, x2: number, y2: number, lineWidth: number, color: number): void {
+        graphics.lineStyle(lineWidth, color);
+
+        // 计算控制点：在两点连线的垂直方向偏移
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
+
+        // 计算垂直向量
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // 曲线弯曲程度（距离的 20%）
+        const curvature = distance * 0.2;
+
+        // 控制点在垂直方向偏移
+        const controlX = midX - dy / distance * curvature;
+        const controlY = midY + dx / distance * curvature;
+
+        // 绘制二次贝塞尔曲线
+        graphics.moveTo(x1, y1);
+        graphics.quadraticCurveTo(controlX, controlY, x2, y2);
     }
 
     /**

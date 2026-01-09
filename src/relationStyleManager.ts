@@ -118,6 +118,8 @@ export class RelationStyleManager {
                 return LineStyle.Dashed;
             case 'dotted':
                 return LineStyle.Dotted;
+            case 'curved':
+                return LineStyle.Curved;
             case 'solid':
             default:
                 return LineStyle.Solid;
