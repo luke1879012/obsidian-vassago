@@ -4,11 +4,11 @@
 
 Vassago 是一个 Obsidian 插件，在图视图中显示带语义的关系边。通过从 `ob_relation/` 目录读取自定义样式配置，让你的知识图谱更加清晰、富有表现力。
 
-![Vassago Demo](https://via.placeholder.com/800x400?text=Vassago+Demo)
+![Vassago 演示效果](assets/demo.png)
 
 ## ✨ 特性
 
-- 🎨 **自定义边样式**：为不同类型的关系定义颜色、线型（实线/虚线/点线）
+- 🎨 **自定义边样式**：为不同类型的关系定义颜色、形状（直线/曲线）、图案（实线/虚线）
 - 🏷️ **语义标签**：在图视图中显示关系类型名称
 - 🎯 **方向控制**：支持 outgoing、incoming、bidirectional 三种方向
 - 📊 **图例显示**：自动生成关系类型图例
@@ -45,14 +45,15 @@ Vassago 依赖 [Dataview](https://github.com/blacksmithgu/obsidian-dataview) 插
 
 ```yaml
 ---
-color: "#4CAF50"
-style: solid
-width: 2
-arrow: true
-direction: outgoing
-inverse: "supported_by"
-label: "支持"
-description: "表示A支持/证实B的观点"
+$color: "#4CAF50"
+$shape: straight
+$pattern: solid
+$width: 2
+$arrow: true
+$direction: outgoing
+$inverse: "supported_by"
+$label: "支持"
+$description: "表示A支持/证实B的观点"
 ---
 
 # supports（支持）
@@ -86,14 +87,17 @@ equivalent_to: "[[等价概念]]"
 
 | 字段 | 类型 | 说明 | 示例 |
 |------|------|------|------|
-| `color` | string | 边的颜色（hex） | `"#4CAF50"` |
-| `style` | string | 线型：`solid`/`dashed`/`dotted` | `"solid"` |
-| `width` | number | 线宽 | `2` |
-| `arrow` | boolean | 是否显示箭头 | `true` |
-| `direction` | string | 方向：`outgoing`/`incoming`/`bidirectional` | `"outgoing"` |
-| `inverse` | string | 反向关系类型名 | `"supported_by"` |
-| `label` | string | 在图上显示的标签 | `"支持"` |
-| `description` | string | 描述（可选） | `"表示A支持B"` |
+| `$color` | string | 边的颜色（hex） | `"#4CAF50"` |
+| `$shape` | string | 线条形状：`straight`/`curved` | `"straight"` |
+| `$pattern` | string | 线条图案：`solid`/`dashed` | `"solid"` |
+| `$width` | number | 线宽 | `2` |
+| `$arrow` | boolean | 是否显示箭头 | `true` |
+| `$direction` | string | 方向：`outgoing`/`incoming`/`bidirectional` | `"outgoing"` |
+| `$inverse` | string | 反向关系类型名 | `"supported_by"` |
+| `$label` | string | 在图上显示的标签 | `"支持"` |
+| `$description` | string | 描述（可选） | `"表示A支持B"` |
+
+> **注意**：所有配置项必须使用 `$` 前缀，以防止与 Obsidian 内部变量冲突。
 
 ### 方向说明
 
